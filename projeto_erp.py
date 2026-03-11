@@ -13,8 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
-# --- CONFIGURAÇÃO DE SAÍDA ---
-ARQUIVO_RESULTADO = 'extração_dados_multi12.txt'
+ARQUIVO_RESULTADO = 'extração_dados_multi.txt'
 
 class AutomationGUI:
     def __init__(self, root):
@@ -26,7 +25,6 @@ class AutomationGUI:
         self.contador_global = 0
         self.lock = threading.Lock() 
         
-        # --- Variáveis GUI ---
         self.user_erp = tk.StringVar()
         self.pass_erp = tk.StringVar()
         self.caminho_excel_var = tk.StringVar()
@@ -40,10 +38,8 @@ class AutomationGUI:
         self.filtro_texto = tk.StringVar(value="tipo de produtos")
         self.num_threads_var = tk.IntVar(value=2)
 
-        # --- Layout ---
         tk.Label(root, text="Painel de Controle de Automação", font=("Arial", 14, "bold")).pack(pady=10)
         
-        # Frame de Credenciais
         login_frame = tk.LabelFrame(root, text=" Credenciais do ERP ", padx=10, pady=10)
         login_frame.pack(pady=5, fill="x", padx=20)
         tk.Label(login_frame, text="Usuário:").grid(row=0, column=0, sticky="w")
@@ -51,7 +47,6 @@ class AutomationGUI:
         tk.Label(login_frame, text="Senha:").grid(row=1, column=0, sticky="w")
         tk.Entry(login_frame, textvariable=self.pass_erp, width=30, show="*").grid(row=1, column=1, padx=5, pady=2)
 
-        # Frame de Seleção de Arquivo e Linha/Coluna
         file_frame = tk.LabelFrame(root, text=" Configuração da Planilha Excel ", padx=10, pady=10)
         file_frame.pack(pady=5, fill="x", padx=20)
         row1 = tk.Frame(file_frame); row1.pack(fill="x")
@@ -64,20 +59,17 @@ class AutomationGUI:
         tk.Label(row2, text="Linha Início:").pack(side="left", padx=5)
         tk.Spinbox(row2, from_=1, to=100000, textvariable=self.linha_inicio, width=8).pack(side="left", padx=5)
 
-        # NOVO: Frame de Opções de Extração (Checkboxes)
         opts_frame = tk.LabelFrame(root, text=" Campos para Extração ", padx=10, pady=10)
         opts_frame.pack(pady=5, fill="x", padx=20)
         tk.Checkbutton(opts_frame, text="Concentração", variable=self.chk_concentracao).pack(side="left", padx=15)
         tk.Checkbutton(opts_frame, text="Tipo de Produto", variable=self.chk_tipo).pack(side="left", padx=15)
         tk.Checkbutton(opts_frame, text="Preço de Venda", variable=self.chk_preco).pack(side="left", padx=15)
 
-        # Frame de Performance
         perf_frame = tk.LabelFrame(root, text=" Configuração de Performance ", padx=10, pady=5)
         perf_frame.pack(pady=5, fill="x", padx=20)
         tk.Label(perf_frame, text="Threads (Navegadores):").pack(side="left", padx=5)
         tk.Spinbox(perf_frame, from_=1, to=15, textvariable=self.num_threads_var, width=5).pack(side="left", padx=5)
 
-        # Monitoramento e Log
         self.label_contador = tk.Label(root, text="Itens Processados: 0", font=("Consolas", 11, "bold"), fg="blue")
         self.label_contador.pack(pady=5)
         self.progress = ttk.Progressbar(root, orient="horizontal", length=750, mode="determinate")
@@ -85,7 +77,6 @@ class AutomationGUI:
         self.log_area = scrolledtext.ScrolledText(root, width=100, height=12, font=("Consolas", 9), bg="#1e1e1e", fg="#00ff00")
         self.log_area.pack(pady=10)
 
-        # Botões de Ação
         btn_frame = tk.Frame(root)
         btn_frame.pack(pady=10)
         self.btn_start = tk.Button(btn_frame, text="INICIAR", command=self.start_process, bg="green", fg="white", width=20, font=("Arial", 10, "bold"))
@@ -133,7 +124,6 @@ class AutomationGUI:
             self.progress["maximum"] = len(dados)
             self.contador_global = 0
             
-            # Divisão ordenada em fatias (Chunks)
             chunk_size = (len(dados) // threads) + (1 if len(dados) % threads != 0 else 0)
             fatias = [dados[i:i + chunk_size] for i in range(0, len(dados), chunk_size)]
 
@@ -175,7 +165,6 @@ class AutomationGUI:
 
                     linha = [f"Cód: {item_c}", f"Ref: {item_d}"]
                     
-                    # Logica de extração condicional às Checkboxes
                     campos = [
                         ('Conc', 'produtoConcentracao_concentracao_nom_concentracao', self.chk_concentracao),
                         ('Tipo', 'cadtipro_tipo_nom_tipo', self.chk_tipo),
