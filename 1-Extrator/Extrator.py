@@ -175,14 +175,13 @@ class AutomationGUI:
         except Exception as e:
             self.log(f"ERRO CRÍTICO AO LER EXCEL: {str(e)}")
         finally:
-            # Não resetamos 'rodando' aqui imediatamente para as threads trabalharem
             self.log("Motor de agendamento finalizado. Aguardando threads...")
 
     def worker(self, lista, worker_id):
         self.log(f"Thread {worker_id}: Iniciando com {len(lista)} itens.")
         
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless=new") # Se quiser ver o erro, mude para options.add_argument("--window-size=1920,1080")
+        options.add_argument("--headless=new") 
         options.add_argument("--blink-settings=imagesEnabled=false")
         
         driver = None
@@ -190,9 +189,8 @@ class AutomationGUI:
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
             wait = WebDriverWait(driver, 20)
 
-            # --- ETAPA DE LOGIN ---
             self.log(f"Thread {worker_id}: Acessando página de login...")
-            driver.get("http://redemariano21476.ddns.com.br:4647/sgfpod1/Login.pod")
+            driver.get("https://linkEmpresa/login")
             
             user_field = wait.until(EC.presence_of_element_located((By.ID, "id_cod_usuario")))
             user_field.send_keys(self.user_erp.get())
@@ -201,25 +199,22 @@ class AutomationGUI:
             driver.execute_script("arguments[0].click();", btn_login)
             
             self.log(f"Thread {worker_id}: Login enviado. Aguardando carregamento...")
-            time.sleep(3) # Tempo para o ERP processar o login
+            time.sleep(3)
             
-            driver.get("http://redemariano21476.ddns.com.br:4647/sgfpod1/Cad_0020.pod")
+            driver.get("https://linkEmpresa/empresa")
             self.log(f"Thread {worker_id}: Página de extração carregada.")
 
-            # --- LOOP DE ITENS ---
             for item in lista:
                 if not self.rodando: break
                 self.pausado.wait()
 
                 try:
-                    # Tenta pegar o código (Índice 2 é a Coluna C)
                     cod = str(item[2]).strip()
                     ref = str(item[3]).strip()
                     
                     if cod == 'nan' or not cod:
                         continue
 
-                    # Limpeza via JS para evitar erros de "elemento bloqueado"
                     driver.execute_script("document.getElementById('cadequiv_equivalente_nom_equivalente').value = '';")
                     
                     input_busca = wait.until(EC.element_to_be_clickable((By.ID, "cod_redbarraEntrada")))
@@ -227,17 +222,15 @@ class AutomationGUI:
                     input_busca.send_keys(Keys.CONTROL + "a", Keys.BACKSPACE)
                     input_busca.send_keys(cod, Keys.ENTER)
                     
-                    time.sleep(1.2) # Delay para o ERP buscar no banco
+                    time.sleep(1.2)
 
                     res_conc = driver.execute_script("return document.getElementById('cadequiv_equivalente_nom_equivalente').value;")
                     res_conc = str(res_conc).strip() if res_conc else "vazio"
 
-                    # Salva no arquivo
                     with self.lock_arquivo:
                         with open(self.caminho_final_txt, "a", encoding="utf-8") as f:
                             f.write(f"Cód: {cod} | Ref: {ref} | Conc: {res_conc}\n")
 
-                    # Atualiza contador
                     with self.lock_contador:
                         self.contador_global += 1
                         val = self.contador_global
