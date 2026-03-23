@@ -17,24 +17,21 @@ class AutomacaoMasterERP:
         self.root.title("Automator ERP v3.0 - Pro Edition")
         self.root.geometry("800x800")
         
-        # Variáveis de Controle
         self.user_erp = tk.StringVar()
         self.pass_erp = tk.StringVar()
         self.caminho_txt = tk.StringVar()
         self.inicio_loop = tk.StringVar(value="0")
         self.fim_loop = tk.StringVar(value="50")
-        self.url_base = "http://redemariano21476.ddns.com.br:4647/sgfpod1"
+        self.url_base = "https://linkEmpresa/login"
         
         self.setup_ui()
 
     def setup_ui(self):
-        # Header
         tk.Label(self.root, text="MOTOR DE INJEÇÃO - SGF/SGE", font=("Consolas", 14, "bold"), fg="#1abc9c").pack(pady=10)
         
         form = tk.Frame(self.root, padx=20)
         form.pack(fill="x")
 
-        # Painel de Login
         f_login = tk.LabelFrame(form, text=" Autenticação ", padx=10, pady=5)
         f_login.grid(row=0, column=0, padx=5, sticky="nsew")
         tk.Label(f_login, text="User:").grid(row=0, column=0, sticky="w")
@@ -42,7 +39,6 @@ class AutomacaoMasterERP:
         tk.Label(f_login, text="Pass:").grid(row=1, column=0, sticky="w")
         tk.Entry(f_login, textvariable=self.pass_erp, width=15, show="*").grid(row=1, column=1)
 
-        # Painel de Controle
         f_loop = tk.LabelFrame(form, text=" Parâmetros de Lote ", padx=10, pady=5)
         f_loop.grid(row=0, column=1, padx=5, sticky="nsew")
         tk.Label(f_loop, text="Index Inicial:").grid(row=0, column=0, sticky="w")
@@ -118,7 +114,7 @@ class AutomacaoMasterERP:
         """Helper para garantir que o campo seja preenchido corretamente"""
         campo = wait.until(EC.element_to_be_clickable((By.ID, element_id)))
         driver.execute_script("arguments[0].focus();", campo)
-        driver.execute_script("arguments[0].value = '';", campo) # Limpeza forçada via JS
+        driver.execute_script("arguments[0].value = '';", campo) 
         campo.click()
         campo.send_keys(Keys.CONTROL + "a")
         campo.send_keys(Keys.BACKSPACE)
@@ -152,7 +148,6 @@ class AutomacaoMasterERP:
         wait = WebDriverWait(driver, 12)
 
         try:
-            # LOGIN
             self.log("Acessando ERP via DDNS...")
             driver.get(f"{self.url_base}/Login.pod")
             wait.until(EC.presence_of_element_located((By.ID, "id_cod_usuario"))).send_keys(self.user_erp.get())
@@ -164,25 +159,21 @@ class AutomacaoMasterERP:
                 try:
                     self.lbl_contador.config(text=f"Processando: {i} / {len(lote)}")
                     
-                    # NAVEGAÇÃO PARA O CADASTRO
                     driver.get(f"{self.url_base}/Cad_0020.pod")
                     time.sleep(1.5)
                     self.tratar_alerta(driver)
 
-                    # INSERÇÃO DO CÓDIGO
                     self.log(f"-> Item {i}: Cod {item['cod']}")
                     self.interagir_campo(driver, wait, "cod_redbarraEntrada", item['cod'], True)
-                    time.sleep(1.5) # Tempo para o ERP carregar o produto
+                    time.sleep(1.5)
                     
                     if self.tratar_alerta(driver): continue
 
-                    # INSERÇÃO DA CONCENTRAÇÃO
                     campo_conc = self.interagir_campo(driver, wait, "cod_concentracaoEntrada", item['conc'])
                     time.sleep(1)
-                    campo_conc.send_keys(Keys.ENTER) # Sai do campo para disparar scripts do ERP
+                    campo_conc.send_keys(Keys.ENTER)
                     time.sleep(1)
 
-                    # SALVAMENTO (F2) NO BODY
                     driver.find_element(By.TAG_NAME, "body").send_keys(Keys.F2)
                     self.log(f"   [OK] {item['conc']} salvo.")
                     time.sleep(1)
