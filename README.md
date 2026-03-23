@@ -37,6 +37,9 @@ Coluna de Código: Definida na interface (ex: Coluna C).
 
 Coluna de Referência: O sistema lê automaticamente a coluna imediatamente à direita da definida para o código.
 
+Para uso:
+Altere os campos que possuem o seguinte link https://linkEmpresa/login e https://linkEmpresa/empresa, para os links de login e cadastro de produtos, respectivamente
+
 *Como gerar o Executável
 Para criar o instalador único (.exe), utilize o PyInstaller:
 
